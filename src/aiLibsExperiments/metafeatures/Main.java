@@ -21,6 +21,10 @@ import weka.core.converters.ConverterUtils.DataSource;
 public class Main {
 
 	public static void main(String[] args) throws Exception {
+		//TODO remember to copy the current build to the cluster and let it run for the last dataset!
+	}
+	
+	public static void adaptMetafeatures(String [] args) throws Exception {
 		int offset = Integer.parseInt(args[0]);
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -103,7 +107,10 @@ public class Main {
 				System.out.println("Datasets not equal! Unequal number of instances / attributes.");
 			}
 			} catch (IOException e) {
-				System.out.println("Failure while reading openML instances object.");
+				System.out.println("Failure while reading openML instances object. Considering dataset unequal");
+				adapter_jobs.update(
+						"UPDATE `dataset_id_mapping` SET `openML_dataset_id` = NULL WHERE `dataset_id_mapping`.`isys_id` = "
+								+ String.valueOf(offset));
 			}
 
 		}
