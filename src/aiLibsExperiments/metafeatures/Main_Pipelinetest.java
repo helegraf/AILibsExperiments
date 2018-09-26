@@ -1,11 +1,6 @@
 package aiLibsExperiments.metafeatures;
 
-import java.io.File;
-
-import de.upb.crc901.automl.hascowekaml.MLPipelineComponentInstanceFactory;
-import de.upb.crc901.automl.metamining.pipelinecharacterizing.WEKAPipelineCharacterizer;
-import de.upb.crc901.automl.pipeline.basic.MLPipeline;
-import weka.attributeSelection.CorrelationAttributeEval;
+import de.upb.crc901.mlplan.multiclass.wekamlplan.weka.model.MLPipeline;
 import weka.attributeSelection.GainRatioAttributeEval;
 import weka.attributeSelection.Ranker;
 import weka.classifiers.functions.MultilayerPerceptron;

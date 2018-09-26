@@ -5,7 +5,7 @@ import java.util.HashMap;
 import org.aeonbits.owner.ConfigCache;
 import org.apache.commons.lang.time.StopWatch;
 
-import de.upb.crc901.automl.metamining.MetaMLPlan;
+import de.upb.crc901.mlplan.metamining.MetaMLPlan;
 import jaicore.basic.SQLAdapter;
 import jaicore.experiments.Experiment;
 import jaicore.experiments.ExperimentDBEntry;
@@ -37,7 +37,7 @@ public class MetaMinerExperimenter implements IExperimentSetEvaluator {
 		Instances test = WekaUtil.getTestSplit(split_technique, data, seed);
 
 		// Set up metaminer
-		MetaMLPlan metaminer = new MetaMLPlan();
+		MetaMLPlan metaminer = new MetaMLPlan(train);
 		metaminer.setMetaFeatureSetName(experiment.getValuesOfKeyFields().get("metafeature_set"));
 		metaminer.setDatasetSetName(experiment.getValuesOfKeyFields().get("dataset_set"));
 		metaminer.setTimeOutInMilliSeconds(
