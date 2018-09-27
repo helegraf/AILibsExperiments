@@ -1,17 +1,28 @@
 package aiLibsExperiments.baseExperiments;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.aeonbits.owner.ConfigCache;
 import org.apache.commons.lang3.time.StopWatch;
+import org.openml.apiconnector.settings.Settings;
 
+import de.upb.crc901.mlplan.multiclass.wekamlplan.weka.model.MLPipeline;
 import jaicore.basic.SQLAdapter;
 import jaicore.experiments.ExperimentDBEntry;
+import jaicore.experiments.ExperimentRunner;
 import jaicore.experiments.IExperimentIntermediateResultProcessor;
 import jaicore.experiments.IExperimentSetConfig;
 import jaicore.experiments.IExperimentSetEvaluator;
+import jaicore.ml.WekaUtil;
 import jaicore.ml.experiments.IMultiClassClassificationExperimentConfig;
+import jaicore.ml.openml.OpenMLHelper;
+import weka.attributeSelection.ASEvaluation;
+import weka.attributeSelection.ASSearch;
+import weka.classifiers.AbstractClassifier;
+import weka.core.Instances;
 
 public class BaseExperimenter implements IExperimentSetEvaluator {
 
@@ -28,7 +39,7 @@ public class BaseExperimenter implements IExperimentSetEvaluator {
 	// A.metafeature_run_id=B.metafeature_run_id
 
 	// testset (isys-id: 36, 43, 34, 9, 3 / semeion, yeast, secom, car, abalone)
-	
+
 	IMultiClassClassificationExperimentConfig CONFIG = ConfigCache.getOrCreate(IBaseExperimenterConfig.class);
 
 	@Override
@@ -39,22 +50,39 @@ public class BaseExperimenter implements IExperimentSetEvaluator {
 	@Override
 	public void evaluate(ExperimentDBEntry experimentEntry, SQLAdapter adapter,
 			IExperimentIntermediateResultProcessor processor) throws Exception {
+		Map<String, String> valuesOfKeyFields = experimentEntry.getExperiment().getValuesOfKeyFields();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				Thread.currentThread().getContextClassLoader().getResourceAsStream("login_data")));
+		reader.readLine();
+		reader.readLine();
+		reader.readLine();
+		String openMLKey = reader.readLine();
+
 		// Load dataset from openML
-		
-		// Split first test then val
-		
-		// Evaluate classifier on split
+		Settings.CACHE_ALLOWED = false;
+		OpenMLHelper.setApiKey(openMLKey);
+		Instances data = OpenMLHelper.getInstancesById(Integer.parseInt(valuesOfKeyFields.get("dataset_id")));
+
+		// Evaluate classifier
+		MLPipeline pipeline = new MLPipeline(ASSearch.forName(valuesOfKeyFields.get("searcher"), null),
+				ASEvaluation.forName(valuesOfKeyFields.get("evaluator"), null),
+				AbstractClassifier.forName(valuesOfKeyFields.get("classifier"), null));
 		StopWatch watch = new StopWatch();
 		watch.start();
-		double errorRate = 0;
+		double errorRate = WekaUtil.evaluateClassifier(valuesOfKeyFields.get("split_technique"),
+				valuesOfKeyFields.get("evaluation_technique"), Integer.parseInt(valuesOfKeyFields.get("seed")), data,
+				pipeline);
 		watch.stop();
-		
+
 		// Write results
 		Map<String, Object> results = new HashMap<>();
 		results.put("errorRate", errorRate);
 		results.put("time", watch.getTime());
-		results.put("val_seed", experimentEntry.getExperiment().getValuesOfKeyFields().get("test_seed"));		
 		processor.processResults(results);
 	}
 
+	public static void main(String[] args) {
+		ExperimentRunner runner = new ExperimentRunner(new BaseExperimenter());
+		runner.randomlyConductExperiments(false);
+	}
 }
