@@ -50,6 +50,7 @@ public class BaseExperimenter implements IExperimentSetEvaluator {
 	@Override
 	public void evaluate(ExperimentDBEntry experimentEntry, SQLAdapter adapter,
 			IExperimentIntermediateResultProcessor processor) throws Exception {
+		System.out.println("Read input values.");
 		Map<String, String> valuesOfKeyFields = experimentEntry.getExperiment().getValuesOfKeyFields();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				Thread.currentThread().getContextClassLoader().getResourceAsStream("login_data")));
@@ -59,26 +60,37 @@ public class BaseExperimenter implements IExperimentSetEvaluator {
 		String openMLKey = reader.readLine();
 
 		// Load dataset from openML
+		System.out.println("Download dataset.");
 		Settings.CACHE_ALLOWED = false;
 		OpenMLHelper.setApiKey(openMLKey);
 		Instances data = OpenMLHelper.getInstancesById(Integer.parseInt(valuesOfKeyFields.get("dataset_id")));
 
 		// Evaluate classifier
+		System.out.println("Evaluate Classifier");
 		MLPipeline pipeline = new MLPipeline(ASSearch.forName(valuesOfKeyFields.get("searcher"), null),
 				ASEvaluation.forName(valuesOfKeyFields.get("evaluator"), null),
 				AbstractClassifier.forName(valuesOfKeyFields.get("classifier"), null));
 		StopWatch watch = new StopWatch();
 		watch.start();
-		double errorRate = WekaUtil.evaluateClassifier(valuesOfKeyFields.get("split_technique"),
+		double errorRate = 1;
+		try {
+		errorRate = WekaUtil.evaluateClassifier(valuesOfKeyFields.get("split_technique"),
 				valuesOfKeyFields.get("evaluation_technique"), Integer.parseInt(valuesOfKeyFields.get("seed")), data,
 				pipeline);
+		
+		} catch (Exception e) {
+			
+		}
 		watch.stop();
-
+		
 		// Write results
+		System.out.println("Write results.");
 		Map<String, Object> results = new HashMap<>();
-		results.put("errorRate", errorRate);
+		results.put("error_rate", errorRate);
 		results.put("time", watch.getTime());
 		processor.processResults(results);
+		
+		System.out.println("Done.");
 	}
 
 	public static void main(String[] args) {

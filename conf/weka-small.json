@@ -1,0 +1,172 @@
+{
+	"repository": "WEKA - Auto-WEKA Searchspace small",
+	"components": [
+		{
+			"name": "pipeline",
+			"providedInterface": [
+				"MLPipeline",
+				"AbstractClassifier"
+			],
+			"requiredInterface": [
+				{
+					"id": "preprocessor",
+					"name": "AbstractPreprocessor"
+				},
+				{
+					"id": "classifier",
+					"name": "BaseClassifier"
+				}
+			],
+			"parameter": [
+			]
+		},
+		{
+			"name": "weka.classifiers.bayes.NaiveBayes",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"AbstractClassifier",
+				"WekaBaseClassifier",
+				"BaseClassifier"
+			],
+			"parameter": [
+			]
+		},
+		{
+			"name": "weka.classifiers.functions.MultilayerPerceptron",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"AbstractClassifier",
+				"WekaBaseClassifier",
+				"BaseClassifier"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.classifiers.lazy.KStar",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"AbstractClassifier",
+				"WekaBaseClassifier",
+				"BaseClassifier"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.classifiers.rules.JRip",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"AbstractClassifier",
+				"WekaBaseClassifier",
+				"BaseClassifier"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.classifiers.trees.RandomForest",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"AbstractClassifier",
+				"WekaBaseClassifier",
+				"BaseClassifier"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.attributeSelection.CfsSubsetEval",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"evaluator"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.attributeSelection.CorrelationAttributeEval",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"evaluator"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.attributeSelection.InfoGainAttributeEval",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"evaluator"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.attributeSelection.BestFirst",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"searcher"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.attributeSelection.Ranker",
+			"requiredInterface": [
+			],
+			"providedInterface": [
+				"searcher"
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		},
+		{
+			"name": "weka.attributeSelection.AttributeSelection",
+			"providedInterface": [
+				"AbstractPreprocessor"
+			],
+			"requiredInterface": [
+				{
+					"id": "eval",
+					"name": "evaluator"
+				},
+				{
+					"id": "search",
+					"name": "searcher"
+				}
+			],
+			"parameter": [
+			],
+			"dependencies": [
+			]
+		}
+	]
+}

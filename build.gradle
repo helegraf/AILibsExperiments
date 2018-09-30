@@ -32,8 +32,12 @@ artifacts {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'aiLibsExperiments.metafeatures.Main'
+        attributes 'Main-Class': 'aiLibsExperiments.small.MLPlan_small_Experimenter'
     }
+}
+
+shadowJar {
+    zip64 true    
 }
 
 dependencies {
