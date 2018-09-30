@@ -1,4 +1,4 @@
-package aiLibsExperiments.small;
+package aiLibsExperiments.small.miner;
 
 import org.aeonbits.owner.Config.Sources;
 

@@ -25,6 +25,7 @@ public class MetaMinerExperimenter implements IExperimentSetEvaluator {
 	@Override
 	public void evaluate(ExperimentDBEntry experimentEntry, SQLAdapter adapter,
 			IExperimentIntermediateResultProcessor processor) throws Exception {
+
 		//TODO pass/ integrate split technique and seed
 		Experiment experiment = experimentEntry.getExperiment();
 		String split_technique = experiment.getValuesOfKeyFields().get("split_technique");

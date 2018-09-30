@@ -1,23 +1,27 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+  }
+}
+
 plugins {
 	id 'java'
 	id 'eclipse-wtp'
 	id "com.github.johnrengelman.shadow" version "2.0.4"
 }
 
+
 sourceSets {
     main {
-        java {
-            srcDir 'src'
-        }
-        resources {
-        	srcDir 'conf'
-        	srcDir 'resources'
-    	}
-    }
-    test {
-		java {
-			srcDir 'test'
-		}
+	    java {
+	        srcDir 'src/main/java'
+	    }
+	    resources {
+	    	srcDir 'src/main/resources'
+		  }
     }
 }
 
@@ -30,14 +34,14 @@ artifacts {
     archives sourcesJar
 }
 
-jar {
-    manifest {
-        attributes 'Main-Class': 'aiLibsExperiments.small.MLPlan_small_Experimenter'
-    }
-}
-
 shadowJar {
-    zip64 true    
+    zip64 true
+	manifest.attributes 'Main-Class': 'aiLibsExperiments.small.MLPlan_small_Experimenter' // The main attraction! Be sure to update this line
+	classifier = 'bootstrapNode' // General jar task property - see more about it in the Gradle manual
+	from(project.convention.getPlugin(JavaPluginConvention).sourceSets.main.output) // Leave as is
+	configurations = [project.configurations.runtime] // Same as the above
+	exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA') // This one is actually really important!
+
 }
 
 dependencies {
@@ -62,8 +66,8 @@ dependencies {
 	compile 'de.upb.isys:hasco'
 	compile 'de.upb.isys:mlplan'
 	
-	compile name: "CRCUtils"
-	compile name: "mtj"
+	compile group: "de.upb.isys", name: "CRCUtils", version: "0.0.1"
+	compile group: "de.upb.isys", name: "mtj", version: "0.0.1"
 	
 	runtime 'org.slf4j:slf4j-log4j12:1.7.25', 'log4j:log4j:1.2.17'
 }

@@ -1,4 +1,4 @@
-package aiLibsExperiments.small;
+package aiLibsExperiments.small.miner;
 
 import java.io.File;
 import java.io.FileOutputStream;
