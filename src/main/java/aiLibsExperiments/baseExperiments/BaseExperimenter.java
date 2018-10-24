@@ -9,6 +9,7 @@ import org.aeonbits.owner.ConfigCache;
 import org.apache.commons.lang3.time.StopWatch;
 import org.openml.apiconnector.settings.Settings;
 
+import de.upb.crc901.mlpipeline_evaluation.ConsistentMLPipelineEvaluator;
 import de.upb.crc901.mlplan.multiclass.wekamlplan.weka.model.MLPipeline;
 import jaicore.basic.SQLAdapter;
 import jaicore.experiments.ExperimentDBEntry;
@@ -16,7 +17,6 @@ import jaicore.experiments.ExperimentRunner;
 import jaicore.experiments.IExperimentIntermediateResultProcessor;
 import jaicore.experiments.IExperimentSetConfig;
 import jaicore.experiments.IExperimentSetEvaluator;
-import jaicore.ml.WekaUtil;
 import jaicore.ml.experiments.IMultiClassClassificationExperimentConfig;
 import jaicore.ml.openml.OpenMLHelper;
 import weka.attributeSelection.ASEvaluation;
@@ -74,7 +74,7 @@ public class BaseExperimenter implements IExperimentSetEvaluator {
 		watch.start();
 		double errorRate = 1;
 		try {
-		errorRate = WekaUtil.evaluateClassifier(valuesOfKeyFields.get("split_technique"),
+		errorRate = ConsistentMLPipelineEvaluator.evaluateClassifier(valuesOfKeyFields.get("split_technique"),
 				valuesOfKeyFields.get("evaluation_technique"), Integer.parseInt(valuesOfKeyFields.get("seed")), data,
 				pipeline);
 		

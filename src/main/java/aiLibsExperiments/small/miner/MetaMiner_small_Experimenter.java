@@ -56,9 +56,9 @@ public class MetaMiner_small_Experimenter implements IExperimentSetEvaluator {
 		resultSet.next();
 
 		System.out.println("Queried for dataset information, isys_id: " + experimentEntry.getExperiment().getValuesOfKeyFields().get("dataset_id") + ".");
-		//String cluster_location = resultSet.getString("cluster_location_new");
+		String cluster_location = resultSet.getString("cluster_location_new");
 		// TODO only for testing!
-		String cluster_location = "resources/credit-g_altered.arff";
+		//String cluster_location = "resources/credit-g_altered.arff";
 //		switch(experimentEntry.getExperiment().getValuesOfKeyFields().get("dataset_id")) {
 //		case "36" : cluster_location = "resources/semeion.arff"; break;
 //		case "43" : cluster_location = "resources/yeast.arff";break;
