@@ -3,7 +3,7 @@ import org.aeonbits.owner.Config.Sources;
 
 import jaicore.ml.experiments.IMultiClassClassificationExperimentConfig;
 
-@Sources({ "file:./conf/setup.properties" })
+@Sources({ "classpath:setup.properties" })
 public interface IMetaMinerConfig extends IMultiClassClassificationExperimentConfig {
 	
 }

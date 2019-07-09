@@ -5,6 +5,7 @@ import java.util.HashMap;
 import org.aeonbits.owner.ConfigCache;
 import org.apache.commons.lang.time.StopWatch;
 
+import de.upb.crc901.mlpipeline_evaluation.ConsistentMLPipelineEvaluator;
 import de.upb.crc901.mlplan.metamining.MetaMLPlan;
 import jaicore.basic.SQLAdapter;
 import jaicore.experiments.Experiment;
@@ -13,7 +14,6 @@ import jaicore.experiments.ExperimentRunner;
 import jaicore.experiments.IExperimentIntermediateResultProcessor;
 import jaicore.experiments.IExperimentSetConfig;
 import jaicore.experiments.IExperimentSetEvaluator;
-import jaicore.ml.WekaUtil;
 import weka.classifiers.Evaluation;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
@@ -25,6 +25,7 @@ public class MetaMinerExperimenter implements IExperimentSetEvaluator {
 	@Override
 	public void evaluate(ExperimentDBEntry experimentEntry, SQLAdapter adapter,
 			IExperimentIntermediateResultProcessor processor) throws Exception {
+
 		//TODO pass/ integrate split technique and seed
 		Experiment experiment = experimentEntry.getExperiment();
 		String split_technique = experiment.getValuesOfKeyFields().get("split_technique");
@@ -33,14 +34,14 @@ public class MetaMinerExperimenter implements IExperimentSetEvaluator {
 		// Get data set and split 
 		System.out.println("Experimenter: Starting Experiment with id: " + experimentEntry.getId());
 		Instances data = new DataSource(experiment.getValuesOfKeyFields().get("dataset_id")).getDataSet();
-		Instances train = WekaUtil.getTrainSplit(split_technique, data, seed);
-		Instances test = WekaUtil.getTestSplit(split_technique, data, seed);
+		Instances train = ConsistentMLPipelineEvaluator.getTrainSplit(split_technique, data, seed);
+		Instances test = ConsistentMLPipelineEvaluator.getTestSplit(split_technique, data, seed);
 
 		// Set up metaminer
 		MetaMLPlan metaminer = new MetaMLPlan(train);
 		metaminer.setMetaFeatureSetName(experiment.getValuesOfKeyFields().get("metafeature_set"));
 		metaminer.setDatasetSetName(experiment.getValuesOfKeyFields().get("dataset_set"));
-		metaminer.setTimeOutInMilliSeconds(
+		metaminer.setTimeOutInSeconds(
 				Integer.parseInt(experiment.getValuesOfKeyFields().get("timeout_in_seconds")) * 1000);
 		metaminer.setCPUs(experiment.getNumCPUs());
 

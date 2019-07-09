@@ -1,3 +1,12 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+  }
+}
+
 plugins {
 	id 'java'
 	id 'eclipse-wtp'
@@ -30,30 +39,29 @@ artifacts {
     archives sourcesJar
 }
 
-jar {
-    manifest {
-        attributes 'Main-Class': 'aiLibsExperiments.small.MLPlan_small_Experimenter'
-    }
-}
-
 shadowJar {
-    zip64 true    
+    zip64 true
+	manifest.attributes 'Main-Class': 'aiLibsExperiments.small.miner.MetaMiner_small_Experimenter' // The main attraction! Be sure to update this line
+	classifier = 'bootstrapNode' // General jar task property - see more about it in the Gradle manual
+	from(project.convention.getPlugin(JavaPluginConvention).sourceSets.main.output) // Leave as is
+	configurations = [project.configurations.runtime] // Same as the above
+	exclude('META-INF/INDEX.LIST', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA') // This one is actually really important!
 }
 
 dependencies {
-
 	// dependencies for submission time
 	compile 'com.google.guava:guava:18.0'
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
-	compile group: 'org.aeonbits.owner', name: 'owner-java8', version:'1.0.6'
-	compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.0.pr4'
-	compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.45'
-	compile group: 'org.graphstream', name: 'gs-core', version: '1.1.1'
-	compile group: 'org.graphstream', name: 'gs-ui', version: '1.3'
-	compile group: 'commons-io', name: 'commons-io', version: '2.6'
-	compile group: 'com.github.fommil.netlib', name: 'core', version: '1.1.2'
-	compile group: 'de.upb.isys', name: 'interruptable-weka', version: '0.0.1'
-	compile group: 'de.upb.isys', name: 'jase', version: '0.0.3'
+	compile 'org.apache.commons:commons-lang3:3.6'
+	compile 'org.aeonbits.owner:owner-java8:1.0.6'
+	compile 'com.fasterxml.jackson.core:jackson-databind:2.9.0.pr4'
+	compile 'mysql:mysql-connector-java:5.1.45'
+	implementation 'com.github.graphstream:gs-core:2.0-alpha'
+	implementation 'com.github.graphstream:gs-ui-javafx:2.0-alpha'
+	implementation 'com.github.graphstream:gs-algo:2.0-alpha'
+	compile 'commons-io:commons-io:2.6'
+	compile 'com.github.fommil.netlib:core:1.1.2'
+	compile 'de.upb.isys:interruptable-weka:0.0.7'
+	compile 'de.upb.isys:jase:0.0.3'
 
 	// dependencies for development time
  	compile "de.upb.isys:jaicore-ml"
@@ -62,8 +70,8 @@ dependencies {
 	compile 'de.upb.isys:hasco'
 	compile 'de.upb.isys:mlplan'
 	
-	compile name: "CRCUtils"
-	compile name: "mtj"
+	compile group: "de.upb.isys", name: "CRCUtils", version: "0.0.1"
+	compile group: "de.upb.isys", name: "mtj", version: "0.0.1"
 	
 	runtime 'org.slf4j:slf4j-log4j12:1.7.25', 'log4j:log4j:1.2.17'
 }
@@ -75,8 +83,7 @@ repositories {
     	dirs 'lib'
     }
     maven { url "https://jitpack.io" }
-	maven {
-        url "http://clojars.org/repo/"
-        url "https://nexus.cs.upb.de/repository/maven-releases/"
-    }
+    maven { url "http://clojars.org/repo/"}
+    maven { url "https://nexus.cs.upb.de/repository/maven-releases/"}
+    maven { url "https://plugins.gradle.org/m2/"}
 }

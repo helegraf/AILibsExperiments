@@ -1,4 +1,4 @@
-package aiLibsExperiments.small;
+package aiLibsExperiments.small.miner;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,31 +49,28 @@ public class MetaMiner_small_Experimenter implements IExperimentSetEvaluator {
 	@Override
 	public void evaluate(ExperimentDBEntry experimentEntry, SQLAdapter adapter,
 			IExperimentIntermediateResultProcessor processor) throws Exception {
-		/* load data for segment dataset and create a train-test-split */
-		String query = "SELECT cluster_location_new, openML_dataset_id FROM dataset_id_mapping WHERE isys_id=?";
-		List<String> values = Arrays.asList(experimentEntry.getExperiment().getValuesOfKeyFields().get("dataset_id"));
-		ResultSet resultSet = adapter.getResultsOfQuery(query, values);
-		resultSet.next();
-
-		System.out.println("Queried for dataset information, isys_id: " + experimentEntry.getExperiment().getValuesOfKeyFields().get("dataset_id") + ".");
-		//String cluster_location = resultSet.getString("cluster_location_new");
-		// TODO only for testing!
-		String cluster_location = "resources/credit-g_altered.arff";
-//		switch(experimentEntry.getExperiment().getValuesOfKeyFields().get("dataset_id")) {
-//		case "36" : cluster_location = "resources/semeion.arff"; break;
-//		case "43" : cluster_location = "resources/yeast.arff";break;
-//		case "34" : cluster_location = "resources/secom.arff";break;
-//		case "9"  : cluster_location = "resources/car.arff";break;
-//		case "3"  : cluster_location = "resources/abalone.arff";break;
-//		}
-		Instances data = new DataSource(cluster_location).getDataSet();
-		data.setClassIndex(data.numAttributes()-1);
-		List<Instances> split = WekaUtil.getStratifiedSplit(data, new Random(Integer.parseInt(experimentEntry.getExperiment().getValuesOfKeyFields().get("seed"))), .7f);
+		// Set experiment context
 		this.experimentID = experimentEntry.getId();
 		this.adapter = adapter;
 		
-		// Initialize meta mlplan and let it run for 2 minutes
-		System.out.println("Example: Configure ML-Plan");
+		// Get the correct dataset
+		System.out.println("Experimenter: Query for dataset information, isys_id: " + experimentEntry.getExperiment().getValuesOfKeyFields().get("dataset_id") + ".");
+		String query = "SELECT cluster_location_new, openML_dataset_id FROM dataset_id_mapping WHERE isys_id=?";
+		List<String> values = Arrays.asList(experimentEntry.getExperiment().getValuesOfKeyFields().get("dataset_id"));
+		ResultSet resultSet = adapter.getResultsOfQuery(query, values);
+		resultSet.next();	
+		String cluster_location = resultSet.getString("cluster_location_new");		
+		// FOR TESTING
+		//cluster_location = "resources/credit-g_altered.arff";
+
+		Instances data = new DataSource(cluster_location).getDataSet();
+		data.setClassIndex(data.numAttributes()-1);
+		
+		List<Instances> split = WekaUtil.getStratifiedSplit(data, new Random(Integer.parseInt(experimentEntry.getExperiment().getValuesOfKeyFields().get("seed"))), .7f);
+
+		
+		// Configure Meta ML-Plan
+		System.out.println("Experimenter: Configure ML-Plan");
 		File tempFile = File.createTempFile("tmp-metaminer-"+experimentEntry.getId(), "json");
 		tempFile.deleteOnExit();
 		FileOutputStream out = new FileOutputStream(tempFile);
@@ -82,50 +79,70 @@ public class MetaMiner_small_Experimenter implements IExperimentSetEvaluator {
 		File configFile = tempFile;
 		MetaMLPlan metaMLPlan = new MetaMLPlan(configFile,data);
 		metaMLPlan.setCPUs(CONFIG.getNumberOfCPUs());
-		metaMLPlan.setTimeOutInMilliSeconds(Integer.parseInt(experimentEntry.getExperiment().getValuesOfKeyFields().get("timeout"))*1000);
+		metaMLPlan.setTimeOutInSeconds(Integer.parseInt(experimentEntry.getExperiment().getValuesOfKeyFields().get("timeout")));
+		//metaMLPlan.setTimeOutInSeconds(60);
 		metaMLPlan.setSeed(Integer.parseInt(experimentEntry.getExperiment().getValuesOfKeyFields().get("seed")));
 		metaMLPlan.setMetaFeatureSetName("all");
 		metaMLPlan.setDatasetSetName("metaminer_small");
 		metaMLPlan.registerListenerForIntermediateSolutions(this);
 		
 		// Build meta components
-		System.out.println("Example: build meta components");
+		System.out.println("Experimenter: build meta components");
 		metaMLPlan.buildMetaComponents(CONFIG.getDBHost(), CONFIG.getDBUsername(), CONFIG.getDBPassword());
 
 		// Build classifier
-		System.out.println("Example: find solution");
+		System.out.println("Experimenter: find solution");
 		start = System.currentTimeMillis();
 		metaMLPlan.buildClassifier(split.get(0));
 		long trainTime = System.currentTimeMillis() - start;
 
-		// Evaluate solution produced by meta mlplan
-		System.out.println("Example: ");
+		// Evaluate solution produced by Meta ML-Plan
+		System.out.println("Experimenter: evaluate solution");
 		Evaluation eval = new Evaluation(split.get(0));
 		eval.evaluateModel(metaMLPlan, split.get(1));
-		System.out.println("Error Rate of the solution produced by Meta ML-Plan: " + (100 - eval.pctCorrect()) / 100f);
+		System.out.println("Experimenter: Error Rate of the solution produced by Meta ML-Plan: " + (100 - eval.pctCorrect()) / 100f);
 		
+		// Upload results
+		System.out.println("Experimenter: upload results");
 		Map<String, Object> results = new HashMap<>();
 		results.put("error_rate", (100 - eval.pctCorrect())/100f);
 		results.put("time", trainTime);
-		processor.processResults(results);		
+		processor.processResults(results);
+		System.out.println("Experimenter: done");
 	}
 	
+	/**
+	 * Uploads the results of an intermediate evaluation to a database table specified in the CONFIG.
+	 * 
+	 * @param solutionEvent The uploaded solution event
+	 */
 	@Subscribe
-	public void uploadIntermediateSolution(IntermediateSolutionEvent e) {
-		if (this.adapter != null && e.getScore() < best) {
+	public void uploadIntermediateSolution(IntermediateSolutionEvent solutionEvent) {
+		if (this.adapter != null) {
 			try {
-				best = e.getScore();
+				// Add basic info
 				Map<String, Object> eval = new HashMap<>();
 				eval.put("run_id", this.experimentID);
 				eval.put("algorithm", "Meta-Miner");
-				if (e.getSearcher() != null && e.getEvaluator() != null) {
-					eval.put("searcher", e.getSearcher());
-					eval.put("evaluator", e.getEvaluator());
+				eval.put("found_at", (int)(System.currentTimeMillis() - start));	
+				
+				// Add solution 
+				if (solutionEvent.getSearcher() != null && solutionEvent.getEvaluator() != null) {
+					eval.put("searcher", solutionEvent.getSearcher());
+					eval.put("evaluator", solutionEvent.getEvaluator());
 				}
-				eval.put("classifier", e.getClassifier());
-				eval.put("found_at", (int)(System.currentTimeMillis() - start));
-				eval.put("score", e.getScore());
+				eval.put("classifier", solutionEvent.getClassifier());
+				
+				// Add score		
+				eval.put("score", solutionEvent.getScore());
+				if (solutionEvent.getScore() < best) {
+					best = solutionEvent.getScore();
+					eval.put("better_than_previous", 1);
+				} else {
+					eval.put("better_than_previous", 0);
+				}
 
+				// Upload
 				this.adapter.insert_noAutoGeneratedFields(CONFIG.evaluationsTable(), eval);
 			} catch (Exception e1) {
 				e1.printStackTrace();
